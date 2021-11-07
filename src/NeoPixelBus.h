@@ -1,5 +1,5 @@
 /*-------------------------------------------------------------------------
-NeoPixel library 
+NeoPixel library
 
 Written by Michael C. Miller.
 
@@ -126,12 +126,47 @@ License along with NeoPixel.  If not, see
 #endif
 
 
-template<typename T_COLOR_FEATURE, typename T_METHOD> class NeoPixelBus
+template<typename T_COLOR_FEATURE> class INeoPixelBus
+{
+public:
+    virtual operator NeoBufferContext<T_COLOR_FEATURE>();
+    virtual void Begin();
+    //virtual void Begin(int8_t sck, int8_t miso, int8_t mosi, int8_t ss);
+    //virtual void Begin(int8_t sck, int8_t dat0, int8_t dat1, int8_t dat2, int8_t dat3, int8_t ss);
+    virtual void Show(bool maintainBufferConsistency = true);
+    virtual inline bool CanShow() const;
+    virtual bool IsDirty() const;
+    virtual void Dirty();
+    virtual void ResetDirty();
+    virtual uint8_t* Pixels();
+    virtual size_t PixelsSize() const;
+    virtual size_t PixelSize() const;
+    virtual uint16_t PixelCount() const;
+    virtual void SetPixelColor(uint16_t indexPixel, typename T_COLOR_FEATURE::ColorObject color);
+    virtual typename T_COLOR_FEATURE::ColorObject GetPixelColor(uint16_t indexPixel) const;
+    virtual void ClearTo(typename T_COLOR_FEATURE::ColorObject color);
+    virtual void ClearTo(typename T_COLOR_FEATURE::ColorObject color, uint16_t first, uint16_t last);
+    virtual void RotateLeft(uint16_t rotationCount);
+    virtual void RotateLeft(uint16_t rotationCount, uint16_t first, uint16_t last);
+    virtual void ShiftLeft(uint16_t shiftCount);
+    virtual void ShiftLeft(uint16_t shiftCount, uint16_t first, uint16_t last);
+    virtual void RotateRight(uint16_t rotationCount);
+    virtual void RotateRight(uint16_t rotationCount, uint16_t first, uint16_t last);
+    virtual void ShiftRight(uint16_t shiftCount);
+    virtual void ShiftRight(uint16_t shiftCount, uint16_t first, uint16_t last);
+    virtual void SwapPixelColor(uint16_t indexPixelOne, uint16_t indexPixelTwo);
+    virtual void SetPixelSettings(const typename T_COLOR_FEATURE::SettingsObject& settings);
+    //virtual void SetMethodSettings(const typename T_METHOD::SettingsObject& settings);
+    virtual uint32_t CalcTotalMilliAmpere(const typename T_COLOR_FEATURE::ColorObject::SettingsObject& settings);
+};
+
+
+template<typename T_COLOR_FEATURE, typename T_METHOD> class NeoPixelBus : public INeoPixelBus<T_COLOR_FEATURE>
 {
 public:
     // Constructor: number of LEDs, pin number
     // NOTE:  Pin Number maybe ignored due to hardware limitations of the method.
-   
+
     NeoPixelBus(uint16_t countPixels, uint8_t pin) :
         _countPixels(countPixels),
         _state(0),
@@ -203,7 +238,7 @@ public:
     }
 
     inline bool CanShow() const
-    { 
+    {
         return _method.IsReadyToUpdate();
     };
 
@@ -222,7 +257,7 @@ public:
         _state &= ~NEO_DIRTY;
     };
 
-    uint8_t* Pixels() 
+    uint8_t* Pixels()
     {
         return _pixels();
     };
@@ -259,7 +294,7 @@ public:
         }
         else
         {
-            // Pixel # is out of bounds, this will get converted to a 
+            // Pixel # is out of bounds, this will get converted to a
             // color object type initialized to 0 (black)
             return 0;
         }
@@ -267,7 +302,7 @@ public:
 
     void ClearTo(typename T_COLOR_FEATURE::ColorObject color)
     {
-        uint8_t temp[T_COLOR_FEATURE::PixelSize]; 
+        uint8_t temp[T_COLOR_FEATURE::PixelSize];
         uint8_t* pixels = _pixels();
 
         T_COLOR_FEATURE::applyPixelColor(temp, 0, color);
@@ -325,8 +360,8 @@ public:
 
     void ShiftLeft(uint16_t shiftCount, uint16_t first, uint16_t last)
     {
-        if (first < _countPixels && 
-            last < _countPixels && 
+        if (first < _countPixels &&
+            last < _countPixels &&
             first < last &&
             (last - first) >= shiftCount)
         {
@@ -374,7 +409,7 @@ public:
             Dirty();
         }
     }
-    
+
     void SwapPixelColor(uint16_t indexPixelOne, uint16_t indexPixelTwo)
     {
         auto colorOne = GetPixelColor(indexPixelOne);
@@ -395,7 +430,7 @@ public:
         _method.applySettings(settings);
         Dirty();
     };
- 
+
     uint32_t CalcTotalMilliAmpere(const typename T_COLOR_FEATURE::ColorObject::SettingsObject& settings)
     {
         uint32_t total = 0; // in 1/10th milliamps
