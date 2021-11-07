@@ -134,7 +134,7 @@ public:
     //virtual void Begin(int8_t sck, int8_t miso, int8_t mosi, int8_t ss);
     //virtual void Begin(int8_t sck, int8_t dat0, int8_t dat1, int8_t dat2, int8_t dat3, int8_t ss);
     virtual void Show(bool maintainBufferConsistency = true);
-    virtual inline bool CanShow() const;
+    virtual bool CanShow() const;
     virtual bool IsDirty() const;
     virtual void Dirty();
     virtual void ResetDirty();
@@ -237,7 +237,7 @@ public:
         ResetDirty();
     }
 
-    inline bool CanShow() const
+    bool CanShow() const
     {
         return _method.IsReadyToUpdate();
     };
